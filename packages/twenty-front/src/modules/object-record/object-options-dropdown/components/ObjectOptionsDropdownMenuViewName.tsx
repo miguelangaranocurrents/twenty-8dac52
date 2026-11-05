@@ -10,8 +10,11 @@ import { useSetAtomComponentState } from '@/ui/utilities/state/jotai/hooks/useSe
 import { type View } from '@/views/types/View';
 import { useUpdateViewFromCurrentState } from '@/views/view-picker/hooks/useUpdateViewFromCurrentState';
 import { viewPickerIsDirtyComponentState } from '@/views/view-picker/states/viewPickerIsDirtyComponentState';
+import { viewPickerInputNameComponentState } from '@/views/view-picker/states/viewPickerInputNameComponentState';
 import { viewPickerIsPersistingComponentState } from '@/views/view-picker/states/viewPickerIsPersistingComponentState';
+import { viewPickerReferenceViewIdComponentState } from '@/views/view-picker/states/viewPickerReferenceViewIdComponentState';
 import { viewPickerSelectedIconComponentState } from '@/views/view-picker/states/viewPickerSelectedIconComponentState';
+import { viewPickerVisibilityComponentState } from '@/views/view-picker/states/viewPickerVisibilityComponentState';
 import { styled } from '@linaria/react';
 import { useEffect, useRef, useState } from 'react';
 import { Key } from 'ts-key-enum';
@@ -70,6 +73,15 @@ export const ObjectOptionsDropdownMenuViewName = ({
   const setViewPickerIsDirty = useSetAtomComponentState(
     viewPickerIsDirtyComponentState,
   );
+  const setViewPickerInputName = useSetAtomComponentState(
+    viewPickerInputNameComponentState,
+  );
+  const setViewPickerReferenceViewId = useSetAtomComponentState(
+    viewPickerReferenceViewIdComponentState,
+  );
+  const setViewPickerVisibility = useSetAtomComponentState(
+    viewPickerVisibilityComponentState,
+  );
 
   const { setAndPersistViewName, setAndPersistViewIcon } =
     useUpdateObjectViewOptions();
@@ -107,6 +119,20 @@ export const ObjectOptionsDropdownMenuViewName = ({
     setViewPickerSelectedIcon(currentView.icon);
   }, [currentView.icon, setViewPickerSelectedIcon]);
 
+  // Enter persists the view picker state, so it must describe this view
+  useEffect(() => {
+    setViewPickerReferenceViewId(currentView.id);
+    setViewPickerInputName(currentView.name);
+    setViewPickerVisibility(currentView.visibility);
+  }, [
+    currentView.id,
+    currentView.name,
+    currentView.visibility,
+    setViewPickerReferenceViewId,
+    setViewPickerInputName,
+    setViewPickerVisibility,
+  ]);
+
   useEffect(() => {
     if (currentView?.key !== 'INDEX' && inputRef.current !== null) {
       inputRef.current.focus();
@@ -139,6 +165,9 @@ export const ObjectOptionsDropdownMenuViewName = ({
               value={viewName}
               onChange={(value) => {
                 setViewName(value);
+                // Enter persists the view picker's name state, which the
+                // debounced save below only updates after a delay.
+                setViewPickerInputName(value);
                 handleViewNameChange(value);
               }}
               autoGrow={false}
